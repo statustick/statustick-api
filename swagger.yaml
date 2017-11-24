@@ -1,0 +1,936 @@
+swagger: '2.0'
+info:
+  description: StatusTick API documentation
+  version: 1.0.0
+  title: StatusTick API
+  contact:
+    email: mustafa@statustick.com
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+# tags are used for organizing operations
+tags:
+- name: auth
+  description: For auth operations
+- name: account
+  description: For account operations
+- name: monitor
+  description: For monitor operations
+- name: contact
+  description: For contact operations
+
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+
+paths:
+  /auth/register:
+    post:
+      tags:
+      - auth
+      summary: Register new user
+      operationId: authRegister
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      parameters:
+          -
+            name: username
+            type: string
+            in: formData
+            description: "user's unique username"
+            required: true
+          -
+            name: password
+            type: string
+            in: formData
+            description: "user's password"
+            required: true
+      responses:
+        200:
+          description: Successfully created user and accounts
+          schema:
+              $ref: '#/definitions/AuthResponse'
+        400:
+          description: Missing required input
+        409:
+          description: Conflict, Username already taken
+  /auth/login:
+    post:
+      tags:
+      - auth
+      summary: Authorise user
+      operationId: authLogin
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      parameters:
+          -
+            name: username
+            type: string
+            in: formData
+            description: "user's unique username"
+            required: true
+          -
+            name: password
+            type: string
+            in: formData
+            description: "user's password"
+            required: true
+      responses:
+        200:
+          description: Successfully authorized user
+          schema:
+            $ref: '#/definitions/AuthResponse'
+        400:
+          description: Missing required input
+        409:
+          description: Conflict, Username already taken
+  /auth/profile:
+    get:
+      tags:
+      - auth
+      summary: Returns authorised user profile
+      operationId: authProfile
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Successfully authorized user
+          schema:
+            $ref: '#/definitions/ProfileResponse'
+  /auth/account:
+    get:
+      tags:
+      - auth
+      summary: Returns authorised account
+      operationId: authAccount
+      description: Authorised account
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Successfully authorized user
+          schema:
+            $ref: '#/definitions/AccountResponse'
+  /accounts:
+    get:
+      tags:
+      - account
+      summary: Returns account list
+      operationId: accountList
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Return authorized accounts
+          schema:
+            $ref: '#/definitions/AccountListResponse'
+    post:
+      tags:
+      - account
+      summary: Create new account
+      operationId: accountCreate
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          -
+            name: name
+            type: string
+            in: formData
+            description: 'Account name'
+            required: true
+          -
+            name: timezone
+            type: string
+            in: formData
+            description: "Timezone, ex: GMT, Europe/Berlin"
+            required: false
+      responses:
+        200:
+          description: Successfully created account
+          schema:
+            $ref: '#/definitions/AccountResponse'
+        400:
+          description: Missing required input
+    put:
+      tags:
+      - account
+      summary: Update account related to token
+      operationId: accountUpdate
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          -
+            name: name
+            type: string
+            in: formData
+            description: 'Account name'
+            required: false
+          -
+            name: timezone
+            type: string
+            in: formData
+            description: "Timezone, ex: GMT, Europe/Berlin"
+            required: false
+      responses:
+        200:
+          description: Successfully updated account
+          schema:
+            $ref: '#/definitions/AccountResponse'
+
+  /monitors:
+    get:
+      tags:
+      - monitor
+      summary: Returns contact list
+      operationId: monitorList
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Return monitor list of related account
+          schema:
+            $ref: '#/definitions/MonitorListResponse'
+    post:
+      tags:
+      - monitor
+      summary: Create new monitor
+      operationId: monitorCreate
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          -
+            name: name
+            type: string
+            in: formData
+            description: 'Monitor name'
+            required: true
+          -
+            name: active
+            type: boolean
+            in: formData
+            required: false
+            default: true
+          -
+            name: type
+            type: string
+            in: formData
+            required: true
+            enum: ['HTTP']
+          -
+            name: url
+            type: string
+            in: formData
+            required: false
+            format: URI
+          -
+            name: authUsername
+            type: string
+            in: formData
+            required: false
+            description: 'Authentication username if remote address is require'
+          -
+            name: authPassword
+            type: string
+            in: formData
+            required: false
+            description: 'Authentication password if remote address is require'
+          -
+            name: delay
+            type: integer
+            in: formData
+            required: false
+            description: 'Min: 1, Max: 60'
+            default: 1
+          -
+            name: confirmation
+            type: integer
+            in: formData
+            required: false
+            description: 'Min: 1, Max: 60'
+            default: 1
+          -
+            name: check
+            type: string
+            in: formData
+            required: false
+            description: 'Min: 30 seconds, Max: 3 hours'
+            enum: ['30sec', '1min', '5min', '15min', '30min', '1hour','3hour']
+            default: '5min'
+          -
+            name: timeout
+            type: integer
+            in: formData
+            required: false
+            description: 'Min: 1, Max: 60'
+          -
+            name: customHeader
+            type: string
+            in: formData
+            required: false
+          -
+            name: userAgent
+            type: string
+            in: formData
+            required: false
+          -
+            name: followRedirect
+            type: boolean
+            in: formData
+            required: false
+            default: false
+          -
+            name: statusCodes
+            in: formData
+            type: array
+            items:
+              type: integer
+            required: false
+            description: 'Which status codes to determine its monitor fails'
+      responses:
+        200:
+          description: Successfully created monitor
+          schema:
+            $ref: '#/definitions/MonitorResponse'
+        400:
+          description: Missing required input
+        409:
+          description: Conflict, Code already using
+
+  /monitors/test:
+    post:
+      tags:
+      - monitor
+      summary: Test monitor
+      operationId: monitorTest
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          -
+            name: type
+            type: string
+            in: formData
+            required: true
+            enum: ['HTTP']
+          -
+            name: url
+            type: string
+            in: formData
+            required: false
+            format: URI
+          -
+            name: authUsername
+            type: string
+            in: formData
+            required: false
+            description: 'Authentication username if remote address is require'
+          -
+            name: authPassword
+            type: string
+            in: formData
+            required: false
+            description: 'Authentication password if remote address is require'
+          -
+            name: delay
+            type: integer
+            in: formData
+            required: false
+            description: 'Min: 1, Max: 60'
+            default: 1
+          -
+            name: timeout
+            type: integer
+            in: formData
+            required: false
+            description: 'Min: 1, Max: 60'
+          -
+            name: followRedirect
+            type: boolean
+            in: formData
+            required: false
+            default: false
+      responses:
+        200:
+          description: Test result
+          schema:
+            $ref: '#/definitions/MonitorTestResponse'
+        400:
+          description: Missing required input
+
+  /monitors/{idMonitor}:
+    get:
+      tags:
+      - monitor
+      summary: Returns monitor detail
+      operationId: monitorDetail
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          - in: path
+            name: idMonitor
+            type: string
+            required: true
+            description: Monitor ID
+      responses:
+        200:
+          description: Return monitor detail
+          schema:
+            $ref: '#/definitions/MonitorResponse'
+    put:
+      tags:
+      - monitor
+      summary: Update monitor
+      operationId: monitorUpdate
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          - in: path
+            name: idMonitor
+            type: string
+            required: true
+            description: Monitor ID
+          -
+            name: name
+            type: string
+            in: formData
+            description: 'Monitor name'
+            required: false
+          -
+            name: active
+            type: boolean
+            in: formData
+            required: false
+            default: true
+          -
+            name: type
+            type: string
+            in: formData
+            required: false
+            enum: ['HTTP']
+          -
+            name: url
+            type: string
+            in: formData
+            required: false
+            format: URI
+          -
+            name: authUsername
+            type: string
+            in: formData
+            required: false
+            description: 'Authentication username if remote address is require'
+          -
+            name: authPassword
+            type: string
+            in: formData
+            required: false
+            description: 'Authentication password if remote address is require'
+          -
+            name: delay
+            type: integer
+            in: formData
+            required: false
+            description: 'Min: 1, Max: 60'
+            default: 1
+          -
+            name: confirmation
+            type: integer
+            in: formData
+            required: false
+            description: 'Min: 1, Max: 60'
+            default: 1
+          -
+            name: check
+            type: string
+            in: formData
+            required: false
+            description: 'Min: 30 seconds, Max: 3 hours'
+            enum: ['30sec', '1min', '5min', '15min', '30min', '1hour','3hour']
+            default: '5min'
+          -
+            name: timeout
+            type: integer
+            in: formData
+            required: false
+            description: 'Min: 1, Max: 60'
+          -
+            name: customHeader
+            type: string
+            in: formData
+            required: false
+          -
+            name: userAgent
+            type: string
+            in: formData
+            required: false
+          -
+            name: followRedirect
+            type: boolean
+            in: formData
+            required: false
+            default: false
+          -
+            name: statusCodes
+            in: formData
+            type: array
+            items:
+              type: integer
+            required: false
+            description: 'Which status codes to determine its monitor fails'
+      responses:
+        200:
+          description: Successfully updated monitor
+          schema:
+            $ref: '#/definitions/MonitorResponse'
+        400:
+          description: Missing required input
+        409:
+          description: Conflict, Code already using
+
+  /monitors/{idMonitor}/contacts:
+    post:
+      tags:
+      - monitor
+      summary: Add contact to monitor
+      operationId: monitorAddContact
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          - in: path
+            name: idMonitor
+            type: string
+            required: true
+            description: 'Monitor ID'
+          -
+            name: idContact
+            type: string
+            in: formData
+            required: true
+            description: 'Contact ID'
+      responses:
+        200:
+          description: Return monitor
+          schema:
+            $ref: '#/definitions/MonitorResponse'
+        400:
+          description: Missing required input
+    delete:
+      tags:
+      - monitor
+      summary: Remove contact from monitor
+      operationId: monitorDeleteContact
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          - in: path
+            name: idMonitor
+            type: string
+            required: true
+            description: 'Monitor ID'
+          -
+            name: idContact
+            type: string
+            in: formData
+            required: true
+            description: 'Contact ID'
+      responses:
+        200:
+          description: Return monitor
+          schema:
+            $ref: '#/definitions/MonitorResponse'
+        400:
+          description: Missing required input
+
+  /contacts:
+    get:
+      tags:
+      - contact
+      summary: Returns contacts list
+      operationId: contactList
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Return contact list of related account
+          schema:
+            $ref: '#/definitions/ContactListResponse'
+    post:
+      tags:
+      - contact
+      summary: Create new contact
+      operationId: contactCreate
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          -
+            name: name
+            type: string
+            in: formData
+            description: 'Contact name'
+            required: true
+          -
+            name: active
+            type: boolean
+            in: formData
+            required: false
+            default: true
+          -
+            name: type
+            type: string
+            in: formData
+            required: true
+            enum: ['WEBHOOK', 'SLACK']
+          -
+            name: url
+            type: string
+            in: formData
+            required: true
+            description: 'Required for WEBHOOK and SLACK'
+            format: URI
+      responses:
+        200:
+          description: Successfully created contact
+          schema:
+            $ref: '#/definitions/ContactResponse'
+        400:
+          description: Missing required input
+
+  /contacts/{idContact}:
+    get:
+      tags:
+      - contact
+      summary: Returns contact detail
+      operationId: contactDetail
+      produces:
+      - application/json
+      security:
+        - Bearer: []
+      parameters:
+          - in: path
+            name: idContact
+            type: string
+            required: true
+            description: Contact ID
+      responses:
+        200:
+          description: Return contact detail
+          schema:
+            $ref: '#/definitions/MonitorResponse'
+
+definitions:
+  AuthResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      user:
+        $ref: '#/definitions/User'
+      accounts:
+        type: array
+        items:
+          $ref: '#/definitions/Account'
+  ProfileResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      user:
+        $ref: '#/definitions/User'
+  AccountResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      account:
+        $ref: '#/definitions/Account'
+  AccountListResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      accounts:
+        type: array
+        items:
+          $ref: '#/definitions/Account'
+  MonitorResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      monitor:
+        type: array
+        items:
+          $ref: '#/definitions/Monitor'
+  MonitorListResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      monitors:
+        type: array
+        items:
+          $ref: '#/definitions/Monitor'
+  MonitorTestResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 200
+          status:
+            type: string
+            example: "OK"
+          drone:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Dublin/Ireland"
+  ContactResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      contact:
+        $ref: '#/definitions/Contact'
+  ContactListResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: true
+      contacts:
+        type: array
+        items:
+          $ref: '#/definitions/Contact'
+  User:
+    properties:
+      id:
+        type: string
+        example: 12345678abc87654321
+      username:
+        type: string
+        example:  myusername
+      createdAt:
+        type: string
+        format: ISO8601
+        example: '2018-12-31T23:59:59.000Z'
+  Account:
+    properties:
+      id:
+        type: string
+        example: 12345678abc87654321
+      name:
+        type: string
+        example: 'Account Name'
+      createdAt:
+        type: string
+        format: ISO8601
+        example: '2018-12-31T23:59:59.000Z'
+      updatedAt:
+        type: string
+        format: ISO8601
+        example: '2018-12-31T23:59:59.000Z'
+      user:
+        $ref: '#/definitions/User'
+      users:
+        type: array
+        items:
+          $ref: '#/definitions/AccountRole'
+      timezone:
+        type: string
+        example: 'Europe/Istanbul'
+      token:
+        type: string
+        example: abc.abcabc.abc
+  AccountRole:
+    properties:
+      permission:
+        type: string
+        example: Admin
+      user:
+        $ref: '#/definitions/User'
+      pending:
+        type: boolean
+        example: false
+  Contact:
+    properties:
+      id:
+        type: string
+        example: 12345678abc87654321
+      createdAt:
+        type: string
+        format: ISO8601
+        example: '2018-12-31T23:59:59.000Z'
+      updatedAt:
+        type: string
+        format: ISO8601
+        example: '2018-12-31T23:59:59.000Z'
+      lastTriggeredAt:
+        type: string
+        format: ISO8601
+        example: '2018-12-31T23:59:59.000Z'
+      active:
+        type: boolean
+        example: true
+      name:
+        type: string
+        example: 'Monitor Name'
+      type:
+        type: string
+        description: 'Contact Type'
+        example: 'Webhook'
+      params:
+        type: object
+        properties:
+          url:
+            type: string
+            example: 'https://www.statustick.com/hook/123456'
+  Monitor:
+    properties:
+      id:
+        type: string
+        example: 12345678abc87654321
+      createdAt:
+        type: string
+        format: ISO8601
+        example: '2018-12-31T23:59:59.000Z'
+      updatedAt:
+        type: string
+        format: ISO8601
+        example: '2018-12-31T23:59:59.000Z'
+      name:
+        type: string
+        example: 'Monitor Name'
+      code:
+        type: string
+        description: 'Monitor Unique Code'
+        example: 'ST'
+      type:
+        type: string
+        example: 'Monitoring type'
+      contacts:
+        type: array
+        items:
+          $ref: '#/definitions/Contact'
+      params:
+        type: object
+        properties:
+          url:
+            type: string
+            example: 'https://www.statustick.com'
+          host:
+            type: string
+            example: 'statustick.com'
+          port:
+            type: integer
+            example: 403
+          auth:
+            type: object
+            properties:
+              username:
+                type: string
+                example: 'myuser'
+              password:
+                type: string
+                example: 'mypassword'
+      delay:
+        type: integer
+        example: 1
+      confirmation:
+        type: integer
+        example: 1
+        description: 'Minimum value to confirm service is up'
+      checkMinutre:
+        type: integer
+        example: 5
+      timeout:
+        type: integer
+        example: 30
+        description: 'Timeout in seconds'
+      http:
+        type: object
+        properties:
+          userAgent:
+            type: string
+            example: 'statustick-bot/1.0'
+          cookie:
+            type: boolean
+            example: false
+          followRedirect:
+            type: boolean
+            example: false
+          customHeader:
+            type: string
+            example: 'key1: value, key2: value'
+          alertStatuses:
+            type: array
+            items:
+              type: integer
+            example: [500, 501, 502]
+schemes:
+ - https
+host: api.statustick.com

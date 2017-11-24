@@ -1,0 +1,35 @@
+version: '2'
+
+services:
+  statustick-api:
+    build:
+      context: .
+    image: statustick-api:latest
+    volumes:
+      - .:/app
+      - /app/node_modules/
+
+    env_file:
+      - .env
+    environment:
+      - JWT_SECRET=1234
+      - MONGO_URI=mongodb://mongo/statustick
+      - REDIS_URI=redis://redis
+      - DEBUG=statustick-api:*
+    links:
+      - mongo
+      - redis
+    command:
+      - /bin/bash
+      - -c
+      - yarn --pure-lockfile && yarn test
+  mongo:
+    image: mongo:3.4
+    ports:
+      - 27017:27017
+    volumes:
+        - /var/lib/mongodb
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379

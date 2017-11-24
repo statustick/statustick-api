@@ -1,0 +1,33 @@
+{
+  "apps": [
+    {
+      "name" : "api",
+      "script": "index.js",
+      "watch": false,
+      "group": "backend",
+      "exec_mode": "cluster",
+      "instances": "max"
+    },
+    {
+      "name" : "worker/task-runner",
+      "script": "worker/task-runner/index.js",
+      "watch": false,
+      "group": "worker",
+      "exec_mode": "forked"
+    },
+    {
+      "name" : "worker/alert-sender",
+      "script": "worker/alert-sender/index.js",
+      "watch": false,
+      "group": "worker",
+      "exec_mode": "forked"
+    },
+    {
+      "name" : "worker/drone-checker",
+      "script": "worker/drone-checker/index.js",
+      "watch": false,
+      "group": "worker",
+      "exec_mode": "forked"
+    }
+  ]
+}

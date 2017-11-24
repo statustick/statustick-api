@@ -1,0 +1,31 @@
+version: '2'
+
+services:
+  statustick-api:
+    build:
+      context: .
+    image: statustick-api:latest
+    volumes:
+      - .:/app
+      - /app/node_modules/
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo/statustick
+      - REDIS_URI=redis://redis
+    links:
+      - mongo
+      - redis
+  mongo:
+    image: mongo:3.4
+    ports:
+      - 27018:27017
+    volumes:
+        - /var/lib/mongodb
+  redis:
+    image: redis:latest
+    ports:
+      - 6380:6379
